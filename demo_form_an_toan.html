@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lời mời</title>
+    <style>
+        /* Reset và style chung */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #0b0e1a 0%, #1a1f2f 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Container chính */
+        .container {
+            text-align: center;
+            padding: 40px 50px;
+            border-radius: 48px;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            max-width: 640px;
+            width: 90%;
+            transition: all 0.4s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ===== GIAI ĐOẠN 1: HELLO ===== */
+        #stage-hello {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 220px;
+            animation: fadeIn 0.8s ease;
+        }
+
+        #stage-hello h1 {
+            font-size: 4.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f7d875, #f5b042);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+            text-shadow: 0 0 40px rgba(245, 176, 66, 0.25);
+            animation: pulseGlow 1.6s ease-in-out infinite alternate;
+        }
+
+        #stage-hello .sub {
+            margin-top: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.95rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        /* ===== GIAI ĐOẠN 2: CÂU HỎI ===== */
+        #stage-question {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeInUp 0.7s ease;
+        }
+
+        #stage-question .question-text {
+            font-size: 1.9rem;
+            font-weight: 600;
+            color: #fff;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        #stage-question .question-text span {
+            color: #f5b042;
+            font-weight: 700;
+        }
+
+        #stage-question .question-sub {
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 0.95rem;
+            margin-bottom: 32px;
+            letter-spacing: 1px;
+        }
+
+        /* Nhóm nút */
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 16px 52px;
+            border: none;
+            border-radius: 60px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            min-width: 140px;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 60px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, #43b581, #2d8f5e);
+            color: #fff;
+            box-shadow: 0 8px 28px rgba(67, 181, 129, 0.35);
+        }
+        .btn-yes:hover {
+            transform: translateY(-4px) scale(1.04);
+            box-shadow: 0 14px 40px rgba(67, 181, 129, 0.5);
+        }
+        .btn-yes:active {
+            transform: scale(0.95);
+        }
+
+        .btn-no {
+            background: linear-gradient(135deg, #f04747, #c0392b);
+            color: #fff;
+            box-shadow: 0 8px 28px rgba(240, 71, 71, 0.35);
+        }
+        .btn-no:hover {
+            transform: translateY(-4px) scale(1.04);
+            box-shadow: 0 14px 40px rgba(240, 71, 71, 0.5);
+        }
+        .btn-no:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== KẾT QUẢ ===== */
+        #stage-result {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        #stage-result .result-icon {
+            font-size: 4.5rem;
+            margin-bottom: 12px;
+        }
+
+        #stage-result .result-text {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        #stage-result .result-sub {
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 6px;
+            font-size: 1rem;
+        }
+
+        /* ===== BỊ VĂNG RA (FULLSCREEN) ===== */
+        #eject-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: radial-gradient(ellipse at center, #1a0505 0%, #0a0000 100%);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: ejectIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #eject-overlay .eject-icon {
+            font-size: 6rem;
+            margin-bottom: 16px;
+            animation: shake 0.5s ease infinite alternate;
+        }
+
+        #eject-overlay .eject-title {
+            font-size: 3.6rem;
+            font-weight: 900;
+            color: #ff3b3b;
+            text-shadow: 0 0 60px rgba(255, 59, 59, 0.5), 0 0 120px rgba(255, 59, 59, 0.2);
+            letter-spacing: 4px;
+        }
+
+        #eject-overlay .eject-sub {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 1.1rem;
+            margin-top: 12px;
+            letter-spacing: 2px;
+        }
+
+        #eject-overlay .eject-btn {
+            margin-top: 40px;
+            padding: 14px 40px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 60px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        #eject-overlay .eject-btn:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                text-shadow: 0 0 20px rgba(245, 176, 66, 0.15);
+            }
+            100% {
+                text-shadow: 0 0 60px rgba(245, 176, 66, 0.4);
+            }
+        }
+
+        @keyframes ejectIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translate(-4px, -2px) rotate(-2deg);
+            }
+            100% {
+                transform: translate(4px, 2px) rotate(2deg);
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 520px) {
+            .container {
+                padding: 28px 20px;
+                border-radius: 32px;
+            }
+            #stage-hello h1 {
+                font-size: 3.2rem;
+            }
+            #stage-question .question-text {
+                font-size: 1.4rem;
+            }
+            .btn {
+                padding: 14px 32px;
+                font-size: 1.1rem;
+                min-width: 110px;
+            }
+            .btn-group {
+                gap: 14px;
+            }
+            #eject-overlay .eject-title {
+                font-size: 2.4rem;
+            }
+            #eject-overlay .eject-icon {
+                font-size: 4rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            #stage-hello h1 {
+                font-size: 2.6rem;
+            }
+            .btn {
+                padding: 12px 24px;
+                font-size: 1rem;
+                min-width: 90px;
+            }
+            #stage-question .question-text {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== CONTAINER CHÍNH ===== -->
+    <div class="container" id="mainContainer">
+
+        <!-- GIAI ĐOẠN 1: HELLO -->
+        <div id="stage-hello">
+            <h1>Hello</h1>
+            <div class="sub">✦ Chào bạn ✦</div>
+        </div>
+
+        <!-- GIAI ĐOẠN 2: CÂU HỎI -->
+        <div id="stage-question">
+            <div class="question-text">
+                Bạn muốn vào <span>qđ</span> chúng mình không?
+            </div>
+            <div class="question-sub">Hãy chọn một phương án</div>
+            <div class="btn-group">
+                <button class="btn btn-yes" id="btnYes">Có</button>
+                <button class="btn btn-no" id="btnNo">Không</button>
+            </div>
+        </div>
+
+        <!-- GIAI ĐOẠN 3: KẾT QUẢ (chọn Có) -->
+        <div id="stage-result">
+            <div class="result-icon">🎉</div>
+            <div class="result-text">Chào mừng bạn!</div>
+            <div class="result-sub">Bạn đã gia nhập qđ thành công</div>
+        </div>
+    </div>
+
+    <!-- ===== OVERLAY BỊ VĂNG RA ===== -->
+    <div id="eject-overlay">
+        <div class="eject-icon">💥</div>
+        <div class="eject-title">BẠN ĐÃ BỊ VĂNG RA!</div>
+        <div class="eject-sub">Hệ thống đã từ chối truy cập của bạn</div>
+        <button class="eject-btn" id="ejectReload">🔄 Thử lại</button>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // DOM refs
+            const stageHello = document.getElementById('stage-hello');
+            const stageQuestion = document.getElementById('stage-question');
+            const stageResult = document.getElementById('stage-result');
+            const btnYes = document.getElementById('btnYes');
+            const btnNo = document.getElementById('btnNo');
+            const ejectOverlay = document.getElementById('eject-overlay');
+            const ejectReload = document.getElementById('ejectReload');
+
+            let timeoutId = null;
+
+            // ---- HÀM CHUYỂN SANG CÂU HỎI ----
+            function showQuestion() {
+                stageHello.style.display = 'none';
+                stageQuestion.style.display = 'flex';
+                stageResult.style.display = 'none';
+            }
+
+            // ---- HÀM CHUYỂN SANG KẾT QUẢ (Có) ----
+            function showResult() {
+                stageHello.style.display = 'none';
+                stageQuestion.style.display = 'none';
+                stageResult.style.display = 'flex';
+            }
+
+            // ---- HÀM VĂNG RA (Không) ----
+            function eject() {
+                // Ẩn container chính
+                document.getElementById('mainContainer').style.opacity = '0.3';
+                document.getElementById('mainContainer').style.filter = 'blur(8px)';
+                document.getElementById('mainContainer').style.pointerEvents = 'none';
+
+                // Hiện overlay
+                ejectOverlay.style.display = 'flex';
+
+                // Phát hiệu ứng rung cho toàn body
+                document.body.style.animation = 'shake 0.3s ease 3';
+            }
+
+            // ---- RESET (Thử lại) ----
+            function resetAll() {
+                // Ẩn overlay
+                ejectOverlay.style.display = 'none';
+
+                // Reset container
+                const container = document.getElementById('mainContainer');
+                container.style.opacity = '1';
+                container.style.filter = 'none';
+                container.style.pointerEvents = 'auto';
+
+                // Reset body animation
+                document.body.style.animation = '';
+
+                // Reset stages
+                stageHello.style.display = 'flex';
+                stageQuestion.style.display = 'none';
+                stageResult.style.display = 'none';
+
+                // Clear timeout cũ nếu có
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
+
+                // Bắt đầu lại timer
+                startTimer();
+            }
+
+            // ---- TIMER: 5 giây rồi hiện câu hỏi ----
+            function startTimer() {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
+                timeoutId = setTimeout(function() {
+                    showQuestion();
+                    timeoutId = null;
+                }, 5000);
+            }
+
+            // ---- XỬ LÝ SỰ KIỆN ----
+
+            // Nút "Có"
+            btnYes.addEventListener('click', function() {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
+                showResult();
+            });
+
+            // Nút "Không" -> Văng ra
+            btnNo.addEventListener('click', function() {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
+                eject();
+            });
+
+            // Nút "Thử lại" trên overlay
+            ejectReload.addEventListener('click', function() {
+                resetAll();
+            });
+
+            // ---- KHỞI CHẠY ----
+            // Đảm bảo trạng thái ban đầu
+            stageHello.style.display = 'flex';
+            stageQuestion.style.display = 'none';
+            stageResult.style.display = 'none';
+            ejectOverlay.style.display = 'none';
+
+            startTimer();
+
+            // ---- Nếu user bấm vào overlay (ngoài nút) cũng không làm gì, chỉ nút mới reload ----
+            // (đã có nút reload)
+
+            console.log('✅ Ứng dụng đã sẵn sàng!');
+        })();
+    </script>
+
+</body>
+</html>its.length>0 && hits[0].distance<6) {
+    const hit = hits[0];
+    const n = hit.face.normal.clone();
+    const np = hit.object.position.clone().add(n);
+    const nb = new THREE.Box3(new THREE.Vector3(np.x-.5,np.y-.5,np.z-.5), new THREE.Vector3(np.x+.5,np.y+.5,np.z+.5));
+    if (!getPlayerBBox(player.position).intersectsBox(nb) && !checkBlockCollision(nb))
+      addBlock(np.x,np.y,np.z,0xDEB887,'plank');
+  }
+});
+document.getElementById('btnCollect').addEventListener('touchstart', e => {
+  e.preventDefault();
+  // Thu thập từ rương
+  const chestHits = getLookTarget(blocks.filter(b => b.userData.isChest));
+  if (chestHits.length>0 && chestHits[0].distance<5) {
+    const chest = chestHits[0].object;
+    if (chest.userData.item === 'fishing_rod') {
+      const empty = inventory.findIndex(s => s === null);
+      if (empty !== -1) {
+        inventory[empty] = 'fishing_rod';
+        chest.userData.item = null;
+        scene.remove(chest);
+        blocks.splice(blocks.indexOf(chest),1);
+        updateUI();
+      }
+    }
+  }
+  // (Không còn sinh vật để thu thập)
+});
+
+// --- HỆ THỐNG SỐNG ---
+let lastHunger = Date.now();
+function updateSurvival() {
+  const now = Date.now();
+  if (now - lastHunger > 5000) {
+    lastHunger = now; hunger = Math.max(0, hunger-3);
+    if (hunger <= 0) hp = Math.max(0, hp-5);
+    updateUI();
+  }
+  inWater = player.position.y < 0;
+  if (inWater) {
+    oxygen = Math.max(0, oxygen - 0.4);
+    if (oxygen <= 0) hp = Math.max(0, hp - 2);
+  } else oxygen = Math.min(maxOxygen, oxygen + 1.5);
+  updateUI();
+  if (hp <= 0) { alert('Bạn đã chết!'); hp=100; hunger=100; oxygen=100; updateUI(); }
+}
+
+// --- GAME LOOP ---
+function animate() {
+  requestAnimationFrame(animate);
+
+  // Di chuyển ngang
+  if (moveF !== 0 || moveR !== 0) {
+    const fwd = new THREE.Vector3(0,0,-1).applyEuler(euler); fwd.y=0; fwd.normalize();
+    const rgt = new THREE.Vector3(1,0,0).applyEuler(euler); rgt.y=0; rgt.normalize();
+    const speed = inWater ? 0.05 : 0.1;
+    const delta = fwd.clone().multiplyScalar(moveF*speed).add(rgt.clone().multiplyScalar(moveR*speed));
+    const newPos = player.position.clone().add(delta);
+    const newBox = getPlayerBBox(newPos);
+    if (!checkBlockCollision(newBox)) player.position.copy(newPos);
+  }
+
+  // Trọng lực & nhảy
+  const groundHit = raycastDown(player.position);
+  const onGroundNow = groundHit && groundHit.distance < 0.05;
+
+  // Xử lý trạng thái chạm đất
+  if (onGroundNow) {
+    if (!onGround) {
+      // Vừa tiếp đất
+      if (isFalling) {
+        const fallDist = fallStartY - player.position.y;
+        if (fallDist >= 4) hp = Math.max(0, hp - Math.floor((fallDist-3)*10));
+        isFalling = false;
+        updateUI();
+      }
+      onGround = true;
+    }
+    player.position.y = groundHit.point.y;
+    velocityY = 0;
+    fallStartY = player.position.y;
+  } else {
+    onGround = false;
+    // Trọng lực
+    const gravity = inWater ? 0.003 : 0.015;
+    velocityY -= gravity;
+    const newY = player.position.y + velocityY;
+    const testBox = getPlayerBBox(new THREE.Vector3(player.position.x, newY, player.position.z));
+    if (!checkBlockCollision(testBox)) {
+      player.position.y = newY;
+      if (!isFalling && velocityY < -0.1 && !inWater) {
+        isFalling = true;
+        fallStartY = player.position.y;
+      }
+    } else {
+      // Va chạm khi rơi
+      if (velocityY < 0) {
+        const hit = raycastDown(player.position);
+        if (hit) {
+          player.position.y = hit.point.y;
+          if (isFalling) {
+            const fd = fallStartY - player.position.y;
+            if (fd >= 4) hp = Math.max(0, hp - Math.floor((fd-3)*10));
+            isFalling = false;
+            updateUI();
+          }
+        }
+        velocityY = 0;
+        onGround = true;
+      } else {
+        velocityY = 0; // va chạm trần
+      }
+    }
+  }
+
+  // Giới hạn dưới nước
+  if (player.position.y < -2.5) player.position.y = -2.5;
+
+  updateCamera();
+  updateSurvival();
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
+// --- JOYSTICK ---
+const joyBase = document.getElementById('joystickBase'), thumb = document.getElementById('joystickThumb');
+let moveF = 0, moveR = 0, joyId = null;
+joyBase.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const t = e.changedTouches[0]; joyId = t.identifier;
+  const rect = joyBase.getBoundingClientRect();
+  const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+  function onMove(ev) {
+    ev.preventDefault();
+    for (const tt of ev.touches) {
+      if (tt.identifier === joyId) {
+        let dx = tt.clientX - cx, dy = tt.clientY - cy;
+        const max = 40, dist = Math.sqrt(dx*dx+dy*dy);
+        if (dist > max) { dx *= max/dist; dy *= max/dist; }
+        thumb.style.left = (37+dx)+'px'; thumb.style.top = (37+dy)+'px';
+        moveF = -dy/max; moveR = dx/max;
+      }
+    }
+  }
+  function onEnd(ev) {
+    for (const tt of ev.changedTouches) if (tt.identifier === joyId) {
+      thumb.style.left='37px'; thumb.style.top='37px';
+      moveF=0; moveR=0; joyId=null;
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+    }
+  }
+  document.addEventListener('touchmove', onMove, {passive: false});
+  document.addEventListener('touchend', onEnd);
+}, {passive: false});
+
+// --- NÚT HÀNH ĐỘNG ---
+document.getElementById('btnJump').addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (inWater) {
+    velocityY = 0.15;
+  } else if (onGround) {
+    velocityY = 0.22;
+    onGround = false;
+    isFalling = true;
+    fallStartY = player.position.y;
+  }
+});
+
+const raycaster = new THREE.Raycaster();
+function getLookTarget(objects) {
+  const dir = new THREE.Vector3(0,0,-1).applyEuler(euler);
+  raycaster.set(new THREE.Vector3(player.position.x, player.position.y+1.7, player.position.z), dir);
+  return raycaster.intersectObjects(objects);
+}
+
+document.getElementById('btnBreak').addEventListener('touchstart', e => {
+  e.preventDefault();
+  const hits = getLookTarget(blocks);
+  if (hits.length>0 && hits[0].distance<6) {
+    const block = hits[0].object;
+    if (!block.userData.isChest) { scene.remove(block); blocks.splice(blocks.indexOf(block),1); }
+  }
+});
+document.getElementById('btnPlace').addEventListener('touchstart', e => {
+  e.preventDefault();
+  const hits = getLookTarget(blocks);
+  if (hits.length>0 && hits[0].distance<6) {
+    const hit = hits[0];
+    const n = hit.face.normal.clone();
+    const np = hit.object.position.clone().add(n);
+    const nb = new THREE.Box3(new THREE.Vector3(np.x-.5,np.y-.5,np.z-.5), new THREE.Vector3(np.x+.5,np.y+.5,np.z+.5));
+    if (!getEntityBBox(player.position).intersectsBox(nb) && !checkBlockCollision(nb))
+      addBlock(np.x,np.y,np.z,0xDEB887,'plank');
+  }
+});
+document.getElementById('btnFish').addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (!inventory.includes('fishing_rod')) return;
+  const closest = animals.filter(a => a.waterCreature).sort((a,b) => a.mesh.position.distanceTo(player.position) - b.mesh.position.distanceTo(player.position))[0];
+  if (closest && closest.mesh.position.distanceTo(player.position) < 6) {
+    scene.remove(closest.mesh);
+    animals.splice(animals.indexOf(closest),1);
+    hunger = Math.min(100, hunger+20);
+    updateUI();
+  }
+});
+document.getElementById('btnCollect').addEventListener('touchstart', e => {
+  e.preventDefault();
+  const chestHits = getLookTarget(blocks.filter(b => b.userData.isChest));
+  if (chestHits.length>0 && chestHits[0].distance<5) {
+    const chest = chestHits[0].object;
+    if (chest.userData.item === 'fishing_rod') {
+      const empty = inventory.findIndex(s => s === null);
+      if (empty !== -1) {
+        inventory[empty] = 'fishing_rod';
+        chest.userData.item = null;
+        scene.remove(chest);
+        blocks.splice(blocks.indexOf(chest),1);
+        updateUI();
+      }
+    }
+    return;
+  }
+  const animalHits = getLookTarget(animals.filter(a => !a.waterCreature).map(a=>a.mesh));
+  if (animalHits.length>0 && animalHits[0].distance<5) {
+    let obj = animalHits[0].object;
+    while (obj && !animals.find(a=>a.mesh===obj)) obj = obj.parent;
+    const ad = animals.find(a=>a.mesh===obj);
+    if (ad) {
+      scene.remove(ad.mesh);
+      animals.splice(animals.indexOf(ad),1);
+      hunger = Math.min(100, hunger+25);
+      hp = Math.min(100, hp+10);
+      updateUI();
+    }
+  }
+});
+
+// --- UPDATE ANIMALS (CÓ DI CHUYỂN VÀ NHẢY GIỐNG NGƯỜI CHƠI) ---
+function updateAnimalPhysics(animal, height=1.5, width=0.8) {
+  // Áp dụng trọng lực
+  const gravity = 0.015;
+  animal.velocityY -= gravity;
+  const newY = animal.mesh.position.y + animal.velocityY;
+  const testBox = getEntityBBox(new THREE.Vector3(animal.mesh.position.x, newY, animal.mesh.position.z), height, width);
+  if (!checkBlockCollision(testBox)) {
+    animal.mesh.position.y = newY;
+    animal.onGround = false;
+  } else {
+    // Va chạm: kiểm tra từng trường hợp
+    if (animal.velocityY < 0) {
+      const hit = raycastDown(animal.mesh.position);
+      if (hit) {
+        animal.mesh.position.y = hit.point.y;
+        animal.velocityY = 0;
+        animal.onGround = true;
+      }
+    } else {
+      animal.velocityY = 0;
+    }
+  }
+  // Kiểm tra dưới chân xem có mặt đất không
+  const hit = raycastDown(animal.mesh.position);
+  if (hit && hit.distance < 0.1) {
+    animal.mesh.position.y = hit.point.y;
+    animal.velocityY = 0;
+    animal.onGround = true;
+  }
+}
+
+function updateAnimals() {
+  animals.forEach(a => {
+    if (a.waterCreature) {
+      // Sinh vật nước: lơ lửng
+      a.mesh.position.x += (Math.random()-0.5)*a.speed*2;
+      a.mesh.position.z += (Math.random()-0.5)*a.speed*2;
+      a.mesh.position.x = Math.max(-worldR, Math.min(worldR, a.mesh.position.x));
+      a.mesh.position.z = Math.max(-worldR, Math.min(worldR, a.mesh.position.z));
+      a.mesh.position.y = -1.5 + Math.sin(Date.now()*0.01)*0.1;
+    } else {
+      // Động vật trên cạn: di chuyển và nhảy
+      if (a.onGround) {
+        // Di chuyển ngẫu nhiên
+        const dx = (Math.random()-0.5)*a.speed*2;
+        const dz = (Math.random()-0.5)*a.speed*2;
+        const newPos = a.mesh.position.clone().add(new THREE.Vector3(dx, 0, dz));
+        newPos.x = Math.max(-worldR, Math.min(worldR, newPos.x));
+        newPos.z = Math.max(-worldR, Math.min(worldR, newPos.z));
+        const bbox = getEntityBBox(newPos, 1.5, 0.8);
+        if (!checkBlockCollision(bbox)) {
+          a.mesh.position.copy(newPos);
+        }
+        // Kiểm tra xem có cần nhảy không (nếu phía trước có vật cản cao 1 block)
+        const dir = new THREE.Vector3(Math.random()-0.5, 0, Math.random()-0.5).normalize();
+        const frontPos = a.mesh.position.clone().add(dir.clone().multiplyScalar(0.8));
+        const frontBbox = getEntityBBox(frontPos, 1.5, 0.8);
+        const frontBlocked = checkBlockCollision(frontBbox);
+        if (frontBlocked) {
+          // Kiểm tra nếu block cao hơn 1 (có thể nhảy lên)
+          const rayOrigin = new THREE.Vector3(frontPos.x, a.mesh.position.y + 1, frontPos.z);
+          const raycaster = new THREE.Raycaster(rayOrigin, new THREE.Vector3(0, -1, 0), 1.5);
+          const hits = raycaster.intersectObjects(blocks);
+          if (hits.length > 0 && hits[0].distance < 0.8) {
+            // Có block phía trên thấp, có thể nhảy lên
+            a.velocityY = 0.22;
+            a.onGround = false;
+          }
+        }
+        // Nhảy ngẫu nhiên
+        if (Math.random() < 0.002) {
+          a.velocityY = 0.22;
+          a.onGround = false;
+        }
+      }
+      // Áp dụng vật lý nhảy
+      updateAnimalPhysics(a, 1.5, 0.8);
+      a.mesh.rotation.y += 0.02;
+    }
+  });
+}
+
+// --- SURVIVAL ---
+let lastHunger = Date.now();
+function updateSurvival() {
+  const now = Date.now();
+  if (now - lastHunger > 5000) {
+    lastHunger = now; hunger = Math.max(0, hunger-3);
+    if (hunger <= 0) hp = Math.max(0, hp-5);
+    updateUI();
+  }
+  inWater = player.position.y < 0;
+  if (inWater) {
+    oxygen = Math.max(0, oxygen - 0.4);
+    if (oxygen <= 0) hp = Math.max(0, hp - 2);
+  } else oxygen = Math.min(maxOxygen, oxygen + 1.5);
+  updateUI();
+  if (hp <= 0) { alert('Bạn đã chết!'); hp=100; hunger=100; oxygen=100; updateUI(); }
+}
+
+// --- GAME LOOP ---
+function animate() {
+  requestAnimationFrame(animate);
+  // Di chuyển người chơi
+  if (moveF !== 0 || moveR !== 0) {
+    const fwd = new THREE.Vector3(0,0,-1).applyEuler(euler); fwd.y=0; fwd.normalize();
+    const rgt = new THREE.Vector3(1,0,0).applyEuler(euler); rgt.y=0; rgt.normalize();
+    const speed = inWater ? 0.05 : 0.1;
+    const delta = fwd.clone().multiplyScalar(moveF*speed).add(rgt.clone().multiplyScalar(moveR*speed));
+    const newPos = player.position.clone().add(delta);
+    const newBox = getEntityBBox(newPos);
+    if (!checkBlockCollision(newBox)) player.position.copy(newPos);
+  }
+  // Vật lý người chơi
+  const inWaterNow = player.position.y < 0;
+  if (inWaterNow) {
+    velocityY -= 0.003;
+    const newY = player.position.y + velocityY;
+    const testBox = getEntityBBox(new THREE.Vector3(player.position.x, newY, player.position.z));
+    if (!checkBlockCollision(testBox)) player.position.y = newY;
+    else velocityY = 0;
+    if (player.position.y < -2.5) player.position.y = -2.5;
+  } else {
+    const hit = raycastDown(player.position);
+    if (hit && hit.distance < 0.05) {
+      if (!onGround && isFalling) {
+        const fallDist = fallStartY - player.position.y;
+        if (fallDist >= 4) hp = Math.max(0, hp - Math.floor((fallDist-3)*10));
+        isFalling = false; updateUI();
+      }
+      player.position.y = hit.point.y;
+      velocityY = 0; onGround = true; fallStartY = player.position.y;
+    } else {
+      onGround = false;
+      velocityY -= 0.015;
+      const newY = player.position.y + velocityY;
+      const testBox = getEntityBBox(new THREE.Vector3(player.position.x, newY, player.position.z));
+      if (!checkBlockCollision(testBox)) {
+        player.position.y = newY;
+        if (!isFalling && velocityY < -0.1) { isFalling = true; fallStartY = player.position.y; }
+      } else {
+        if (velocityY < 0) {
+          const h = raycastDown(player.position);
+          if (h) {
+            player.position.y = h.point.y;
+            if (isFalling) { const fd = fallStartY - player.position.y; if (fd>=4) hp = Math.max(0,hp-Math.floor((fd-3)*10)); isFalling=false; updateUI(); }
+          }
+          velocityY = 0; onGround = true;
+        } else velocityY = 0;
+      }
+    }
+  }
+  updateCamera();
+  updateAnimals();
+  updateSurvival();
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
